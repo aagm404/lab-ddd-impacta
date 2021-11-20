@@ -16,20 +16,19 @@ import br.com.lab.impacta.investment.service.facade.valueObject.AccountBalanceVO
 
 @Service
 public class InvestmentServiceImpl implements InvestmentService {
-	
-	@Autowired
-	private InvestmentRepository investmentRepository;
-	
-	@Autowired
-	private ProductRepository productRepository;
-	
-	@Autowired
+
+    @Autowired
+    private InvestmentRepository investmentRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
     private AccountFacade accountFacade;
 
-	@Override
-	public Investment invest(Long productId, Long accountId, BigDecimal valueInvestment) {
-		
-		Optional<Product> product = productRepository.findById(productId);
+    @Override
+    public Investment invest(Long productId, Long accountId, BigDecimal valueInvestment) {
+        Optional<Product> product = productRepository.findById(productId);
 
         if (product.isEmpty())
             throw new RuntimeException("Retornar erro de negocio");
@@ -44,8 +43,13 @@ public class InvestmentServiceImpl implements InvestmentService {
         if (!investment.verifyProductPrivateOrDefaultForInvestment(accountBalanceVO.getBalance(), product.get()))
             throw new RuntimeException("Retornar erro");
 
-//        investment.sufficientBalanceForInvestment
+        boolean isDebited = accountFacade.debitAccount(accountId, valueInvestment);
 
-        return null;
-	}
+        if (!isDebited)
+            throw new RuntimeException("Retornar erro");
+
+        investmentRepository.save(investment);
+
+        return investment;
+    }
 }
